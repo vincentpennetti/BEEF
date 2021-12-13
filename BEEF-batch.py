@@ -3,17 +3,6 @@ from tkinter import Tk     # from tkinter import Tk for Python 3.x
 from tkinter.filedialog import askopenfilename
 
 
-# sequence information
-cds = input("Input your CDS starting with ATG, without stop codon: ")
-cds_list = list(cds)
-cds_codons = [cds[x:x+3] for x in range(0, len(cds),3)]
-
-    
-# C -> T transition candidates
-eligible_targets = ['CAA', 'CAG', 'CGA',] # CCA on the - strand
-stop_codons = ['TAA', 'TAG', 'TGA']
-
-
 def reverse_complement(sequence):
     """ takes as input a DNA sequence and returns the reverse complement"""
     rev = ""
@@ -102,6 +91,16 @@ def target_processor(cds, cds_list, target, pam, guide_dir):
 
 
 def main():
+    # sequence information
+    cds = input("Input your CDS starting with ATG, without stop codon: ")
+    cds_list = list(cds)
+    cds_codons = [cds[x:x+3] for x in range(0, len(cds),3)]
+
+        
+    # C -> T transition candidates
+    eligible_targets = ['CAA', 'CAG', 'CGA',] # CCA on the - strand
+    stop_codons = ['TAA', 'TAG', 'TGA']
+    
     # obtain the file and parse out the important
     Tk().withdraw()
     filePath = askopenfilename()
@@ -140,3 +139,6 @@ def main():
 if __name__ == "__main__":
     main()
     
+    
+
+
