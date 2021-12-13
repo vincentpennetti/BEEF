@@ -2,7 +2,11 @@ import csv
 from tkinter import Tk     # from tkinter import Tk for Python 3.x
 from tkinter.filedialog import askopenfilename
 
+# C -> T transition candidates
+eligible_targets = ['CAA', 'CAG', 'CGA',] # CCA on the - strand
+stop_codons = ['TAA', 'TAG', 'TGA']
 
+    
 def reverse_complement(sequence):
     """ takes as input a DNA sequence and returns the reverse complement"""
     rev = ""
@@ -23,7 +27,7 @@ def reverse_complement(sequence):
 def guide_index_fun(guide, cds):
     """ returns the index of the guide """
     cds_RC = reverse_complement(cds)
-    
+
     if guide in cds:
         guide_index = cds.index(guide)
         match_dir = 1
@@ -38,7 +42,7 @@ def guide_index_fun(guide, cds):
 
 
 # find the editing window for 20mers
-def twentyMer_editor(match_dir, target):
+def twentyMer_editor(cds, match_dir, target):
     """ Takes as input the cds direction, guide direction, and target
         returns the editing window for a particular target"""
     
@@ -69,9 +73,10 @@ def base_editing(editing_window, cds_list):
 # detect stop codons
 def stop_detector(stop_codons, edited_cds):
     """ searches for a stop codon in a provided cds"""
+    
     # check for early stop codon
     for stp in stop_codons:
-        if stp in edited_cds:
+        if stp in edited_cds[:-3]:
             return True
     return False
 
@@ -83,7 +88,7 @@ def target_processor(cds, cds_list, target, pam, guide_dir):
     
     guide_index, match_dir = guide_index_fun(target, cds)
 
-    editing_window = twentyMer_editor(match_dir, target)
+    editing_window = twentyMer_editor(cds, match_dir, target)
 
     edited_cds = base_editing(editing_window, cds_list)
 
@@ -95,13 +100,8 @@ def main():
     cds = input("Input your CDS starting with ATG, without stop codon: ")
     cds_list = list(cds)
     cds_codons = [cds[x:x+3] for x in range(0, len(cds),3)]
-
         
-    # C -> T transition candidates
-    eligible_targets = ['CAA', 'CAG', 'CGA',] # CCA on the - strand
-    stop_codons = ['TAA', 'TAG', 'TGA']
-    
-    # obtain the file and parse out the important
+        # obtain the file and parse out the important
     Tk().withdraw()
     filePath = askopenfilename()
 
@@ -117,23 +117,22 @@ def main():
     f = open((filePath.split('/')[-1]).split('.')[0] + '_KO_candidates.txt', "x")
     f.write('       Target        PAM\n-------------------- ---\n')
     for row in csvrows[1:]:
-        target = row[12]
-        pam = row[10]
-        direction = row[4]
+        target = row[csvrows[0].index('Target Sequence')]
+        pam = row[csvrows[0].index('Protospacer Adjacent Motif (PAM)')]
+        direction = row[csvrows[0].index('Direction')]
 
         if direction == "forward":
             target_dir = 1
         elif direction == "reverse":
             target_dir= 0
         else:
+            print(direction)
             raise ValueError("invalid target direction")
         
         if target_processor(cds, cds_list, target, pam, target_dir):
             f.write(target + ' ' + pam + '\n')
             stripped_list.append([target, pam])
-
     f.close()
-
 #######################################
 
 if __name__ == "__main__":
